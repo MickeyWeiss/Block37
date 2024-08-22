@@ -36,4 +36,18 @@ const createLocation = async (name) => {
     return response.rows[0];
 }
 
-module.exports = { client, createTables }
+const fetchUsers = async () => {
+    const SQL = `
+        SELECT * FROM users;`;
+    const response = await client.query(SQL);
+    return response.rows
+}
+
+const fetchLocations = async () => {
+    const SQL = `
+        SELECT * FROM locations;`;
+    const response = await client.query(SQL);
+    return response.rows;
+}
+
+module.exports = { client, createTables, createUser, createLocation, fetchUsers, fetchLocations }
