@@ -50,4 +50,25 @@ const fetchLocations = async () => {
     return response.rows;
 }
 
-module.exports = { client, createTables, createUser, createLocation, fetchUsers, fetchLocations }
+const createReview = async ({user_id, location_id}) => {
+    const SQL = `
+        INSERT INTO reviews (id, user_id, location_id) VALUES ($1, $2, $3)
+        RETURNING $`;
+    const response = await client.query(SQL, [uuid.v4(), user_id, location_id]);
+    return response.rows[0]
+}
+
+const fetchReviews = async(id) => {
+    const SQL = `
+        SELECT * FROM reviews WHERE user_id = $1`;
+    const response = await client.query(SQL, [id]);
+    return response.rows;
+}
+
+const deleteReview = async({id, user_id}) => {
+    const SQL = `
+        DELETE FROM reviews WHERE id = $1 AND user_id = $2`;
+    await client.query(SQL, [id, user_id])
+}
+
+module.exports = { client, createTables, createUser, createLocation, fetchUsers, fetchLocations, createReview, fetchReviews, deleteReview }
