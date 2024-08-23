@@ -71,4 +71,38 @@ const deleteReview = async({id, user_id}) => {
     await client.query(SQL, [id, user_id])
 }
 
+const authenticate = async({username, password}) => {
+    const SQL = `
+        SELECT id, username FROM users WHERE username = $1`;
+    const response = await client.query(SQL, [username]);
+    if(!response.rows.length || (await bcrypt.compare(password, response.rows[0].password)) === false){
+        const error = Error('not authorized');
+        error.status = 401;
+        throw error;
+    }
+    const token = await jwt.sign({id: response.rows[0].id, JWT})
+    console.log(token);
+    return { token: response.rows[0].id};
+}
+
+const findUserWithToken = async(id) => {
+    try {
+        const payload = await jwt.verify(token, JWT),
+        id = payload.id
+    }catch (ex) {
+        const error = Error('not authorized');
+        error.status = 401;
+        throw error;
+    }
+    const SQL = `
+        SELECT id, username FROM users WHERE id = $1`;
+    const response = await client.query(SQL, [id]);
+    if(!response.rows.length) {
+        const error = Error('not authorized');
+        error.status = 401;
+        throw error;
+    }
+    return response.rows[0];
+}
+
 module.exports = { client, createTables, createUser, createLocation, fetchUsers, fetchLocations, createReview, fetchReviews, deleteReview }
