@@ -105,4 +105,4 @@ const findUserWithToken = async(id) => {
     return response.rows[0];
 }
 
-module.exports = { client, createTables, createUser, createLocation, fetchUsers, fetchLocations, createReview, fetchReviews, deleteReview }
+module.exports = { client, createTables, createUser, createLocation, fetchUsers, fetchLocations, createReview, fetchReviews, deleteReview, authenticate, findUserWithToken }

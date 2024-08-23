@@ -1,9 +1,26 @@
-const {client, createTables, createUser, createLocation, fetchUsers, fetchLocations, createReview, fetchReviews, deleteReview} = require('./db');
+const {client, createTables, createUser, createLocation, fetchUsers, fetchLocations, createReview, fetchReviews, deleteReview, authenticate, findUserWithToken} = require('./db');
 const express = require ('express');
 const app = express();
 app.use (express.json());
 const port = process.env.PORT || '3000';
-app.listen(port, () => console.log(`listening on port ${port}`))
+app.listen(port, () => console.log(`listening on port ${port}`));
+
+const isLoggedIn = async (req, res, next) => {
+    try {
+        req.user = await findUserWithToken(req.headers.authorization);
+        next();
+    }catch(ex) {
+        next
+    }
+}
+
+app.post('/api/auth/login', async (req, res, next) => {
+    try {
+        res.send(await authenticate(req.body));
+    }catch (error) {
+        next(error)
+    }
+})
 
 app.get('/api/users', async (req, res, next) => {
     try {
@@ -21,25 +38,40 @@ app.get('/api/locations', async (req, res, next) => {
     }
 })
 
-app.get('/api/users/:id/reviews', async (req, res, next) => {
+app.get('/api/users/:id/reviews', isLoggedIn, async (req, res, next) => {
     try {
+        if (req.params.id !==req.user.id){
+            const error = Error('not authorized');
+            error.status = 401;
+            throw error;
+        }
         res.send (await fetchReviews(req.params.id))
     }catch (error) {
         next(error)
     }
 })
 
-app.post('/api/users/:id/reviews', async (req, res, next) => {
+app.post('/api/users/:id/reviews', isLoggedIn, async (req, res, next) => {
     try {
+        if(req.params.id !== req.user.id) {
+            const error = Error('not authorized');
+            error.status = 401;
+            throw error;
+        }
         res.status(201).send (await createReview ({user_id: req.params.id, location_id: req.product.location_id}))
     }catch (error) {
         next(error)
     }
 })
 
-app.delete('/api/users/:id/reviews', async (req, res, next) => {
+app.delete('/api/users/:user_id/reviews/:id', isLoggedIn, async (req, res, next) => {
     try {
-        await deleteReview({id: req.params.id, user_id: req.params.userID})
+        if(req.params.id !== req.user.id) {
+            const error = Error('not authorized');
+            error.status = 401;
+            throw error;
+        }
+        await deleteReview({id: req.params.id, user_id: req.params.user_id})
         res.sendStatus(204)
     }catch(error){
         next(error)
