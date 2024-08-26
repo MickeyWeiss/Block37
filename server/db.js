@@ -15,7 +15,7 @@ const createTables = async () => {
         
         CREATE TABLE locations (id UUID PRIMARY KEY, name VARCHAR(100));
 
-        CREATE TABLE reviews (id UUID PRIMARY KEY, user_id UUID REFERENCES users(id) NOT NULL, location_id UUID REFERENCES locations(id) NOT NULL, travel_date DATE NOT NULL);`;
+        CREATE TABLE reviews (id UUID PRIMARY KEY, user_id UUID REFERENCES users(id) NOT NULL, location_id UUID REFERENCES locations(id) NOT NULL, travel_date DATE NOT NULL, review VARCHAR(25000) NOT NULL);`;
 
         await client.query(SQL);
 };
@@ -52,8 +52,8 @@ const fetchLocations = async () => {
 
 const createReview = async ({user_id, location_id}) => {
     const SQL = `
-        INSERT INTO reviews (id, user_id, location_id) VALUES ($1, $2, $3)
-        RETURNING $`;
+        INSERT INTO reviews (id, user_id, location_id, review) VALUES ($1, $2, $3, $4)
+        RETURNING *`;
     const response = await client.query(SQL, [uuid.v4(), user_id, location_id]);
     return response.rows[0]
 }

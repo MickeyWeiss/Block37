@@ -38,6 +38,14 @@ app.get('/api/locations', async (req, res, next) => {
     }
 })
 
+app.get('/api/reviews', async (req, res, next) => {
+    try {
+        res.send (await fetchReviews())
+    }catch(error){
+        next(error)
+    }
+})
+
 app.get('/api/users/:id/reviews', isLoggedIn, async (req, res, next) => {
     try {
         if (req.params.id !==req.user.id){
